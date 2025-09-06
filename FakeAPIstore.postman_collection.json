@@ -1,0 +1,436 @@
+{
+	"info": {
+		"_postman_id": "be218621-ce8f-4d95-a498-953a02687d0a",
+		"name": "FakeAPIstore",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "47313334"
+	},
+	"item": [
+		{
+			"name": "01_auth",
+			"item": [
+				{
+					"name": "01_get_user_auth",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//Get the response \r",
+									"let res = pm.response.json()\r",
+									"//Making the username variable dynamic\r",
+									"let limit = 2;\r",
+									"//Inserting value for each user\r",
+									"res.slice(0,limit).forEach((f, i)=>{\r",
+									"   limit++;\r",
+									"   pm.environment.set(`username_${i}`, f.username)\r",
+									"   pm.environment.set(`password_${i}`, f.password)\r",
+									"   \r",
+									"})\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.clear()"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}users",
+							"host": [
+								"{{baseUrl}}users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "01_auth_login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let resToken = pm.response.json()\r",
+									"pm.environment.set(\"user_0_token\", resToken.token)"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "\r\n{\r\n  \"username\": \"{{username_1}}\",\r\n  \"password\": \"{{password_1}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "02_smoke_testing",
+			"item": [
+				{
+					"name": "01_get_all_users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}users",
+							"host": [
+								"{{baseUrl}}users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "02_get_all_products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}products",
+							"host": [
+								"{{baseUrl}}products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "03_get_all_carts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}carts",
+							"host": [
+								"{{baseUrl}}carts"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"console.clear();"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"//General settings\r",
+							"let msgOk = \"\\u{1F7E2}\";\r",
+							"let msgFail = \"\\u{1F534}\";\r",
+							"let showUrl = pm.request.url.toString();\r",
+							"let passTests = 0;\r",
+							"let failTests = 0;\r",
+							"let result = [];\r",
+							"\r",
+							"//Function to run every test\r",
+							"function test_to_run(testName, expected, actual, condition, value){\r",
+							"        let status, emoji;\r",
+							"        if(condition){\r",
+							"            passTests++;\r",
+							"            status = \"passed\";\r",
+							"            emoji = msgOk;\r",
+							"        }\r",
+							"        else{\r",
+							"            failTests++;\r",
+							"            status = \"failed\";\r",
+							"            emoji = msgFail;\r",
+							"        }            \r",
+							"        result.push({\r",
+							"            test:testName,\r",
+							"            condition:condition,\r",
+							"            expected:expected,\r",
+							"            actual:actual,\r",
+							"            status:status,\r",
+							"            emoji:emoji,\r",
+							"            requestName:value\r",
+							"        })\r",
+							"        console.log(\r",
+							"            `testName:${String(testName).padEnd(20)}condition:${String(condition).padEnd(20)}expected:${String(expected).padEnd(20)}actual:${String(actual).padEnd(20)}status:${String(status).padEnd(20)}${String(emoji).padEnd(20)}requestName:${value}`\r",
+							"        )\r",
+							"        pm.test(testName, ()=>{\r",
+							"            pm.expect(condition).to.be.true;\r",
+							"        })\r",
+							"}\r",
+							"\r",
+							"const data = [\r",
+							"    {name:\"status_code\", expected:200, actual:pm.response.code, condition:pm.response.code == 200, rName:pm.info.requestName},\r",
+							"    {name:\"rateTime\", expected:1000, actual:pm.response.responseTime, condition:pm.response.responseTime <= 1000, rName:pm.info.requestName}\r",
+							"]\r",
+							"\r",
+							"//Run tests\r",
+							"data.forEach(u=>{test_to_run(u.name, u.expected, u.actual, u.condition, u.rName)})\r",
+							"\r",
+							"//Summary\r",
+							"console.log(\"\\n===== Summary =====\");\r",
+							"let totalTests = passTests + failTests;\r",
+							"let okRate = ((passTests / totalTests) * 100).toFixed(0);\r",
+							"console.log(`okrate =\\t${okRate}%\\tpassTests =\\t${passTests}\\tfailTests =\\t${failTests}`)\r",
+							"\r",
+							"//Export\r",
+							"pm.environment.set(\"testResult\", JSON.stringify(result));\r",
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "03_unit_testing",
+			"item": [
+				{
+					"name": "User",
+					"item": [
+						{
+							"name": "01_add_user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"//Fixed invalid Chai property usage\r",
+											"let msgOk = `\\u{1F7E2}`;\r",
+											"let msgFail = `\\u{1F534}`;\r",
+											"let passTest = 0;\r",
+											"let failTest = 0;\r",
+											"let reqName = pm.info.requestName;\r",
+											"let showUrl = pm.request.url.toString();\r",
+											"let result = [];\r",
+											"let testData = pm.request.body.raw;\r",
+											"//Function to run tests\r",
+											"function runTests(testName, condition, expectedValue, actual ) {\r",
+											"    let status, emoji;\r",
+											"    if (condition){\r",
+											"        status = \"Pass\";\r",
+											"        emoji = msgOk;\r",
+											"        passTest++;\r",
+											"    }\r",
+											"    else {\r",
+											"        status = \"Fail\";\r",
+											"        emoji = msgFail;\r",
+											"        failTest++;\r",
+											"    }\r",
+											"    result.push({testName:testName, condition:condition, expectedValue:expectedValue, actual:actual, emoji:emoji, status:status, reqName:reqName, showUrl:showUrl, testData:testData})\r",
+											"    pm.test(testName, ()=> {\r",
+											"        pm.expect(condition).to.be.true;\r",
+											"    })\r",
+											"    console.log(`testName:${String(testName).padEnd(30)} condition:${String(condition).padEnd(10)} expectedValue:${String(expectedValue).padEnd(40)} actual:${String(actual).padEnd(40)} status:${String(status).padEnd(10)} ${emoji}`)\r",
+											"}\r",
+											"//Test data \r",
+											"let data = [\r",
+											"    {testName:\"status_code_201\", condition:pm.response.code === 201, expectedValue: 201, actual:pm.response.code},\r",
+											"    {testName:\"response_time\", condition:pm.response.responseTime < 1000, expectedValue: \"< 1000\", actual:pm.response.responseTime},\r",
+											"    {testName:\"verify_response_message\", condition:pm.response.json().id === 0, expectedValue:\"ID=0\", actual:pm.response.json().id},\r",
+											"    {testName:\"verify_message_type\", condition:pm.response.headers.get(\"Content-Type\").includes('application/json'), expectedValue:\"application/json\", actual:pm.response.headers.get(\"Content-Type\")},\r",
+											"    {testName:\"verify_Id_field\", condition:pm.response.json().hasOwnProperty(\"id\"), expectedValue:\"id\", actual:pm.response.json().hasOwnProperty(\"id\")}\r",
+											"]\r",
+											"\r",
+											"//Run tests\r",
+											"data.forEach(test=>{(runTests(test.testName, test.condition, test.expectedValue, test.actual))})\r",
+											"\r",
+											"//Report tests\r",
+											"console.log(\"\\n\\n\")\r",
+											"let totalTests = passTest + failTest;\r",
+											"let passRate = ((passTest / totalTests) * 100).toFixed(0);\r",
+											"console.log(`totalTest:${String(totalTests).padEnd(50)} passTest:${String(passTest).padEnd(10)} failTest:${String(failTest).padEnd(10)} passRate:${passRate}`)\r",
+											"//Testdat to json\r",
+											"pm.environment.set(\"testData\", JSON.stringify(result))\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"//clear the console\r",
+											"console.clear();\r",
+											"// User creation\r",
+											"const fields = [\"FirstName\", \"Email\", \"Password\"];\r",
+											"const varName = [\"name\", \"email\", \"pssword\"];\r",
+											"const showUser = [];\r",
+											"fields.map((f, i)=>{\r",
+											"    let value = pm.variables.replaceIn(`{{$random${f}}}`);\r",
+											"    pm.environment.set(varName[i], value);\r",
+											"    showUser.push(value);\r",
+											"})\r",
+											"console.log(\"user is :\", showUser);"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"id\":12,\r\n    \"username\":\"{{name}}\",\r\n    \"email\":\"{{email}}\",\r\n    \"password\":\"{{pssword}}\"\r\n\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseUrl}}users",
+									"host": [
+										"{{baseUrl}}users"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "02_single_user",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}users/11",
+									"host": [
+										"{{baseUrl}}users"
+									],
+									"path": [
+										"11"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "04_update_user",
+							"request": {
+								"method": "PUT",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "05_delete_user",
+							"request": {
+								"method": "DELETE",
+								"header": []
+							},
+							"response": []
+						},
+						{
+							"name": "04_all_user",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}users",
+									"host": [
+										"{{baseUrl}}users"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Prodcuts",
+					"item": []
+				},
+				{
+					"name": "Carts",
+					"item": []
+				}
+			]
+		},
+		{
+			"name": "04_integration_testing",
+			"item": []
+		},
+		{
+			"name": "05_functional_testing",
+			"item": []
+		},
+		{
+			"name": "06_end_to_end_testing",
+			"item": []
+		},
+		{
+			"name": "07_security_testing",
+			"item": []
+		},
+		{
+			"name": "07_clear_up",
+			"item": []
+		}
+	]
+}
